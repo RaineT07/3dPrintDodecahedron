@@ -91,6 +91,7 @@
             const deltaAmount = () =>{
                 const halfSize = size/2;
                 const rand = Math.random() * 0.2 + 0.9;
+                console.log(rand);
                 const aBitSmaller = 0.8;
                 return aBitSmaller * rand * halfSize;
             }
@@ -98,7 +99,7 @@
             
 
 
-            const smallerSize = 1.1 * size /3;
+            const smallerSize = 1.25 * size /3;
 
             //hoooo boy there's a ton of math involved. lets get into it.
             //source for how the heck I know this comes from here: http://www.csharphelper.com/howtos/howto_wpf_3d_platonic_dodecahedron.html
@@ -119,46 +120,49 @@
             
             //now that we have the angle values (t-series) we can calculate d-series values
 
-            let d1 = deltaAmount()/2/ Math.sin(t4);
+            let movement = deltaAmount();
+
+            let d1 = movement/2/ Math.sin(t4);
             let d2 = d1* Math.cos(t4);
             let d3 = d1 * Math.cos(t2);
             let d4 = d1 * Math.sin(t2);
 
             //Now that those are done, we can get some advanced vertex coordinates.
             //the 4 more we need are Fx, Fy, d5, and Ay. here's the calculations.
-            let fx = ( Math.pow(deltaAmount(), 2) - Math.pow(2 * d3, 2) - (Math.pow(d1,2) - Math.pow(d3, 2) - Math.pow(d4, 2))) / (2 * (d4 - d1));
-            let d5 = Math.sqrt(0.5 * (Math.pow(deltaAmount(), 2) + Math.pow(2*d3, 2) - Math.pow(d1-fx,2) - Math.pow(d4-fx, 2) - Math.pow(d3,2)));
+            let fx = ( Math.pow(movement, 2) - Math.pow(2 * d3, 2) - (Math.pow(d1,2) - Math.pow(d3, 2) - Math.pow(d4, 2))) / (2 * (d4 - d1));
+            let d5 = Math.sqrt(0.5 * (Math.pow(movement, 2) + Math.pow(2*d3, 2) - Math.pow(d1-fx,2) - Math.pow(d4-fx, 2) - Math.pow(d3,2)));
             let fy = (Math.pow(fx,2) - Math.pow(d1,2) - Math.pow(d5,2)) / (2*d5);
             let ay = d5 + fy;
 
             // now that we have ALL the values, we can actually calculate the verticies of the dodecahedron in 3d, wow!
 
-            let va = [d1, ay, 0];
-            let vb = [d4, ay, d3];
-            let vc = [-d2, ay, deltaAmount()/2];
-            let vd = [-d2,ay, -deltaAmount()/2];
-            let ve = [d4, ay, -d3];
-            let vf = [fx, fy, 0];
-            let vg = [fx*Math.sin(t2), fy, fx*Math.cos(t2)];
-            let vh = [-fx * Math.sin(t3), fy, fx * Math.cos(t3)];
-            let vi = [-fx*Math.sin(t3), fy, -fx * -Math.cos(t3)];
-            let vj = [fx * Math.sin(t3), fy, -fx*Math.cos(t2)];
-            let vk = [fx * Math.sin(t3),-fy, fx*Math.cos(t3)];
-            let vl = [-fx*Math.sin(t2), -fy, fx*Math.cos(t2)];
-            let vm = [-fx, -fy, 0];
-            let vn = [-fx * Math.sin(t2), -fy, -fx * Math.cos(t2)];
-            let vo = [fx * Math.sin(t3), -fy, -fx * Math.cos(t3)];
-            let vp = [d2, -ay, deltaAmount()/2];
-            let vq = [-d4, -ay, d3];
-            let vr = [-d1, -ay, 0];
-            let vs = [-d4, -ay, -d3];
-            let vt = [d2, -ay, -deltaAmount()/2];
+            let va = [d1,                   ay,     0];
+            let vb = [d4,                   ay,     d3];
+            let vc = [-d2,                  ay,     movement/2];
+            let vd = [-d2,                  ay,     -movement/2];
+            let ve = [d4,                   ay,     -d3];
+            let vf = [fx,                   fy,     0];
+            let vg = [fx*Math.sin(t2),      fy,     fx*Math.cos(t2)];
+            let vh = [-fx * Math.sin(t3),   fy,     fx * Math.cos(t3)];
+            let vi = [-fx*Math.sin(t3),     fy,     -fx * Math.cos(t3)];
+            let vj = [fx * Math.sin(t2),    fy,     -fx*Math.cos(t2)];
+            let vk = [fx * Math.sin(t3),    -fy,    fx*Math.cos(t3)];
+            let vl = [-fx*Math.sin(t2),     -fy,    fx*Math.cos(t2)];
+            let vm = [-fx,                  -fy,    0];
+            let vn = [-fx * Math.sin(t2),   -fy,    -fx * Math.cos(t2)];
+            let vo = [fx * Math.sin(t3),    -fy,    -fx * Math.cos(t3)];
+            let vp = [d2,                   -ay,    movement/2];
+            let vq = [-d4,                  -ay,    d3];
+            let vr = [-d1,                  -ay,    0];
+            let vs = [-d4,                  -ay,    -d3];
+            let vt = [d2,                   -ay,    -movement/2];
 
             //now we're gonna make 2 arrays, which we can give to the polyhedron function in order to make our dodecahedrons
             //array 1: array of verticies
             //                  0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19
             let dodeVertexes = [va,vb,vc,vd,ve,vf,vg,vh,vi,vj,vk,vl,vm,vn,vo,vp,vq,vr,vs,vt]
-            //array 2: array of faces (which is also an array that tells which verticies make up a face)
+            //array 2: array of arrays of indexes of verticies that make up the faces of the dodecahedron
+            //must be counter-clockwise in order
             let dodeFaces = [
                 [0,4,3,2,1],
                 [10,5,0,1,6],
@@ -166,12 +170,13 @@
                 [12,7,2,3,8],
                 [13,8,3,4,9],
                 [14,9,4,0,5],
-                [5,14,19,15,10],
-                [6,11,16,15,10],
-                [7,12,17,16,11],
-                [8,12,17,18,13],
-                [13,9,14,19,18],
-                [15,16,17,18,19],
+                [19,15,16,17,18],
+                [19,14,5,10,15],
+                [19,18,13,9,14],
+                [18,17,12,8,13],
+                [17,16,11,7,12],
+                [16,15,10,6,11]
+                
             ]
 
             
@@ -205,7 +210,7 @@
         }
 
         render(document.getElementById("render"),
-        sierpinski_not_dode({ size: 300 }, 0))
+        sierpinski_not_dode({ size: 300 }, 2))
 
     </script>
 </body>
